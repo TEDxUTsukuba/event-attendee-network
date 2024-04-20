@@ -43,13 +43,14 @@
             - つかわないかも
             - イベントごとにユーザーが生えるので
 - データ構造
-    - event
+    - events
         - id
         - name
-        - participants
+        - attendees
             - id
             - name
             - role
+                - audience / speaker / staff / etc...
             - info
                 - key
                 - value
