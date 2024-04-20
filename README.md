@@ -61,6 +61,10 @@
                 - key
                 - value
             - timestamp
+- デザイン
+    - とくに考えていない
+    - figma
+        - https://www.figma.com/file/j48eOqnBk6GGHwFaxUgGPw/Event-Attendance-Network?type=design&node-id=0%3A1&mode=design&t=f4F0gqexIcxZRnLl-1
 
 
 ## Getting Started
