@@ -2,6 +2,7 @@
 
 import { pickupNQuestions } from "@/lib/question";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"
 
 interface EventData {
   id: string;
@@ -17,6 +18,7 @@ interface UserData {
 
 export default function EventUserRegisterPage({ eventData }: { eventData: EventData }) {
   const [questions, setQuestions] = useState<string[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     setQuestions(pickupNQuestions(3));
@@ -53,8 +55,23 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
         userData,
       }),
     });
+
+    if (!response.ok) {
+      console.error("Error");
+      return;
+    }
+
     const data = await response.json();
     console.log(data);
+
+    const token = data.token;
+    const userId = data.userId;
+
+    localStorage.setItem(`event-${eventData.id}-token`, token);
+    localStorage.setItem(`event-${eventData.id}-userId`, userId); // 保存しなくてもいいけど、一応
+
+    // リダイレクト
+    router.push(`/event/${eventData.id}/portal`);
   }
 
 
