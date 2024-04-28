@@ -9,7 +9,7 @@ interface EventData {
 }
 
 interface UserData {
-  nickname: string;
+  name: string;
   questions: {
     [key: string]: string;
   };
@@ -23,14 +23,14 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
   }, []);
 
   const [userData, setUserData] = useState<UserData>({
-    nickname: "",
+    name: "",
     questions: {},
   });
 
   const onChangeNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserData({
       ...userData,
-      nickname: e.target.value,
+      name: e.target.value,
     });
   }
 
@@ -46,6 +46,15 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
 
   const onSubmit = async () => {
     console.log(userData);
+    const response = await fetch(`/api/event/register`, {
+      method: "POST",
+      body: JSON.stringify({
+        eventId: eventData.id,
+        userData,
+      }),
+    });
+    const data = await response.json();
+    console.log(data);
   }
 
 
