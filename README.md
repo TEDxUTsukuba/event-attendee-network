@@ -59,8 +59,7 @@
             - parent_id
             - child_id
             - info
-                - key
-                - value
+                - keyの配列
             - timestamp
 - デザイン
     - とくに考えていない

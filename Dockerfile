@@ -1,0 +1,52 @@
+FROM node:18.18-slim AS base
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+RUN yarn --frozen-lockfile
+COPY . .
+
+
+FROM base AS build
+ENV NODE_ENV=production
+ARG APP_ENV=production
+WORKDIR /build
+
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+ARG NEXT_PUBLIC_FIREBASE_APP_ID
+
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
+
+COPY --from=base /app ./
+RUN yarn build:next
+
+
+FROM node:18.18-slim AS node_modules
+
+WORKDIR /modules
+
+COPY package.json yarn.lock ./
+RUN yarn install --non-interactive --frozen-lockfile --production
+
+
+FROM node:18.18-slim
+ENV NODE_ENV=production
+ARG APP_ENV=production
+WORKDIR /app
+
+COPY next.config.js ./
+COPY --from=build /build/public ./public
+COPY --from=build /build/.next/static ./.next/static
+COPY --from=build /build/.next/standalone ./
+
+EXPOSE 8080
+
+CMD ["node", "server.js"]
