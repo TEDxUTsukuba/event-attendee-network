@@ -24,6 +24,13 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     setQuestions(pickupNQuestions(3));
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem(`event-${eventData.id}-token`);
+    if (token) {
+      router.push(`/event/${eventData.id}/portal`);
+    }
+  }, []);
+
   const [userData, setUserData] = useState<UserData>({
     name: "",
     questions: {},
