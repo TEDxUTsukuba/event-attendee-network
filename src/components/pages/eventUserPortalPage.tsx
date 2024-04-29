@@ -106,7 +106,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
 
     return (
         <div className="p-3 flex flex-col gap-6">
-            <Card>
+            <Card className="max-w-md mx-auto">
                 <CardHeader>
                     <h1 className="text-2xl font-bold text-center">{eventData.name}</h1>
                 </CardHeader>
@@ -120,10 +120,10 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                     }
                 </CardContent>
                 <CardFooter>
-                    <p className="text-sm text-gray-500">自身のQRコードを他の参加者に見せて、参加者同士の繋がりを作りましょう!</p>
+                    <p className="text-sm text-gray-500">自身のQRコードを他の参加者に見せて、参加者同士のつながりを作りましょう!</p>
                 </CardFooter>
             </Card>
-            <h2 className="text-lg">繋がった人たち</h2>
+            <h2 className="text-lg">つながった人たち</h2>
             <div className="flex flex-col gap-2">
                 {sortedAttendees.map((attendee) => (
                     <div key={attendee.id} className="flex flex-col gap-1">
