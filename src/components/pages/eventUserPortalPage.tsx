@@ -5,6 +5,7 @@ import QRCode from "react-qr-code";
 import { useRouter } from "next/navigation";
 import { db } from "@/firebase/database";
 import { collection, doc, getDocs, query, where } from "firebase/firestore";
+import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 
 
 interface EventData {
@@ -104,15 +105,24 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
     }, [])
 
     return (
-        <div className="max-w-md mx-auto flex flex-col gap-3">
-            <h1 className="text-lg font-bold">{eventData.name}</h1>
-            {userId &&
-                <div className="text-center w-full flex flex-col gap-1">
-                    <h2 className="text-lg">あなたのID</h2>
-                    <QRCode value={`${location.origin}/event/${eventData.id}/connect/${userId}`} className="mx-auto" />
-                    <p className="text-xs font-thin">{userId}</p>
-                </div>
-            }
+        <div className="p-3 flex flex-col gap-6">
+            <Card>
+                <CardHeader>
+                    <h1 className="text-2xl font-bold text-center">{eventData.name}</h1>
+                </CardHeader>
+                <CardContent>
+                    {userId &&
+                        <div className="text-center w-full flex flex-col gap-1">
+                            <h2 className="text-lg">あなたのID</h2>
+                            <QRCode value={`${location.origin}/event/${eventData.id}/connect/${userId}`} className="mx-auto" />
+                            <p className="text-xs font-thin">{userId}</p>
+                        </div>
+                    }
+                </CardContent>
+                <CardFooter>
+                    <p className="text-sm text-gray-500">自身のQRコードを他の参加者に見せて、参加者同士の繋がりを作りましょう!</p>
+                </CardFooter>
+            </Card>
             <h2 className="text-lg">繋がった人たち</h2>
             <div className="flex flex-col gap-2">
                 {sortedAttendees.map((attendee) => (
