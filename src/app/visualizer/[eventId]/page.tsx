@@ -57,7 +57,24 @@ export default function VisualizeNetwork({
         addedChanges.forEach((change) => {
           const attendee = change.doc.data();
           toast.info(`${attendee.name}が参加しました！`);
+
+          if (networkRef.current) {
+            setTimeout(() => {
+              try {
+                networkRef.current?.stopSimulation();
+                networkRef.current?.focus(change.doc.id, focusOptions);
+                networkRef.current?.selectNodes([change.doc.id]);
+                setTimeout(() => {
+                  networkRef.current?.fit(moveToOptions);
+                  networkRef.current?.startSimulation();
+                }, 1000);
+              } catch (e) {
+                console.error(e);
+              }
+            }, 500);
+          }
         });
+
       }
 
     });
@@ -68,7 +85,7 @@ export default function VisualizeNetwork({
       const connectionsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      }))
       console.log(connectionsData);
       setConnections(connectionsData);
 
@@ -77,9 +94,29 @@ export default function VisualizeNetwork({
       if (addedChanges.length != snapshot.docs.length) {
         addedChanges.forEach((change) => {
           const connection = change.doc.data();
+
+          if (!connection.parent_id || !connection.child_id || connection.parent_id === connection.child_id) return;
+
           const parent = attendeesDataCache.find((attendee) => attendee.id === connection.parent_id);
           const child = attendeesDataCache.find((attendee) => attendee.id === connection.child_id);
+
           toast.success(`${parent?.name}が${child?.name}と繋がりました！`);
+
+          if (networkRef.current) {
+            setTimeout(() => {
+              networkRef.current?.selectEdges([change.doc.id]);
+
+              setTimeout(() => {
+                networkRef.current?.stopSimulation();
+                networkRef.current?.focus(connection.parent_id, focusOptions);
+
+                setTimeout(() => {
+                  networkRef.current?.fit(moveToOptions);
+                  networkRef.current?.startSimulation();
+                }, 1500);
+              }, 500);
+            }, 500);
+          }
         });
       }
     });
@@ -103,11 +140,11 @@ export default function VisualizeNetwork({
     }));
 
     let edges = connections.map((connection) => ({
+      id: connection.id,
       from: connection.parent_id,
       to: connection.child_id,
     }));
 
-    // fromとtoが同じ場合は除外
     edges = edges.filter((edge) => edge.from !== edge.to);
 
     return {
@@ -278,11 +315,11 @@ export default function VisualizeNetwork({
 
   return (
     <div>
-      {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
+      <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
         <Button onClick={focusRandomNode}>Focus Random Node</Button>
         <Button onClick={debugRandomAddNode}>Debug Random Add Node</Button>
         <Button onClick={debugRandomAddConnection}>Debug Random Add Connection</Button>
-      </div> */}
+      </div>
       {/* <h1>Event: {eventId}</h1>
       <h2>Attendees</h2>
       <ul>
