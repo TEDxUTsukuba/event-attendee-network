@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { db } from "@/firebase/database";
+import { pickupNQuestions } from "@/lib/question";
 import { doc, collection, query, onSnapshot, addDoc } from "firebase/firestore";
 import { useEffect, useState, useMemo, useRef } from "react";
 import VisGraph, {
@@ -11,6 +12,7 @@ import VisGraph, {
   Node,
   Network,
 } from 'react-vis-graph-wrapper';
+import { toast } from "sonner"
 
 
 export default function VisualizeNetwork({
@@ -36,6 +38,7 @@ export default function VisualizeNetwork({
     if (!eventId) return;
 
     const eventRef = doc(db, 'events', eventId as string);
+    var attendeesDataCache: any[] = [];
 
     // attendeesのリアルタイム取得
     const attendeesQuery = query(collection(eventRef, 'attendees'));
@@ -46,6 +49,17 @@ export default function VisualizeNetwork({
       }));
       console.log(attendeesData);
       setAttendees(attendeesData);
+      attendeesDataCache = attendeesData;
+
+      const addedChanges = snapshot.docChanges().filter((change) => change.type === "added");
+
+      if (addedChanges.length != snapshot.docs.length) {
+        addedChanges.forEach((change) => {
+          const attendee = change.doc.data();
+          toast.info(`${attendee.name}が参加しました！`);
+        });
+      }
+
     });
 
     // connectionsのリアルタイム取得
@@ -57,6 +71,17 @@ export default function VisualizeNetwork({
       }));
       console.log(connectionsData);
       setConnections(connectionsData);
+
+      const addedChanges = snapshot.docChanges().filter((change) => change.type === "added");
+
+      if (addedChanges.length != snapshot.docs.length) {
+        addedChanges.forEach((change) => {
+          const connection = change.doc.data();
+          const parent = attendeesDataCache.find((attendee) => attendee.id === connection.parent_id);
+          const child = attendeesDataCache.find((attendee) => attendee.id === connection.child_id);
+          toast.success(`${parent?.name}が${child?.name}と繋がりました！`);
+        });
+      }
     });
 
     // クリーンアップ関数
@@ -77,10 +102,13 @@ export default function VisualizeNetwork({
 
     }));
 
-    const edges = connections.map((connection) => ({
+    let edges = connections.map((connection) => ({
       from: connection.parent_id,
       to: connection.child_id,
     }));
+
+    // fromとtoが同じ場合は除外
+    edges = edges.filter((edge) => edge.from !== edge.to);
 
     return {
       nodes,
@@ -192,7 +220,7 @@ export default function VisualizeNetwork({
     const inter1 = setInterval(() => {
       if (!networkRef.current) return;
 
-      if (Math.random() < 0.5) {
+      if (Math.random() < 0.2) {
         focusRandomNode();
         console.log('focus');
       } else {
@@ -215,11 +243,47 @@ export default function VisualizeNetwork({
 
   }, [attendees, connections]);
 
+  const debugRandomAddNode = async () => {
+    const name = Math.random().toString(36).slice(-8);
+    const role = Math.random().toString(36).slice(-8);
+    const attendeeRef = collection(doc(db, 'events', eventId as string), 'attendees');
+
+    const questions = pickupNQuestions(3);
+
+    //questionsをdictionaryに変換{question1: "hogehoge", question2: "fugafuga", question3: "piyopiyo"}
+    const questionsDict = questions.reduce((acc, question, index) => {
+      acc[question] = Math.random().toString(36).slice(-8);
+      return acc;
+    }, {} as any);
+
+    await addDoc(attendeeRef, {
+      name,
+      role,
+      info: questionsDict
+    });
+  }
+
+  const debugRandomAddConnection = async () => {
+    const parent_id = attendees[Math.floor(Math.random() * attendees.length)].id;
+    const child_id = attendees[Math.floor(Math.random() * attendees.length)].id;
+    const connectionRef = collection(doc(db, 'events', eventId as string), 'connections');
+
+    await addDoc(connectionRef, {
+      parent_id,
+      child_id,
+      timestamp: new Date(),
+    });
+  }
+
 
   return (
     <div>
-      <Button onClick={focusRandomNode} className="fixed left-3 top-3 z-50">Focus Random Node</Button>
-      <h1>Event: {eventId}</h1>
+      {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
+        <Button onClick={focusRandomNode}>Focus Random Node</Button>
+        <Button onClick={debugRandomAddNode}>Debug Random Add Node</Button>
+        <Button onClick={debugRandomAddConnection}>Debug Random Add Connection</Button>
+      </div> */}
+      {/* <h1>Event: {eventId}</h1>
       <h2>Attendees</h2>
       <ul>
         {attendees.map((attendee) => (
@@ -235,7 +299,7 @@ export default function VisualizeNetwork({
             {connection.parent_id} → {connection.child_id}
           </li>
         ))}
-      </ul>
+      </ul> */}
       {graphData.nodes.length > 0 && (
         <div className="h-screen w-screen fixed left-0 top-0">
           <VisGraph ref={networkRef} graph={graphData} options={options} style={{ height: '100%', width: '100%' }} />
