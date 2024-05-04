@@ -315,11 +315,11 @@ export default function VisualizeNetwork({
 
   return (
     <div>
-      <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
+      {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
         <Button onClick={focusRandomNode}>Focus Random Node</Button>
         <Button onClick={debugRandomAddNode}>Debug Random Add Node</Button>
         <Button onClick={debugRandomAddConnection}>Debug Random Add Connection</Button>
-      </div>
+      </div> */}
       {/* <h1>Event: {eventId}</h1>
       <h2>Attendees</h2>
       <ul>
