@@ -13,8 +13,8 @@ export default function Home() {
       <section className="mb-12 flex flex-col gap-12">
         <div className="py-3 flex flex-col gap-6">
           <h1 className="text-6xl font-extrabold text-center break-words">
-            <span className="inline-block">"Attendee</span>
-            <span className="inline-block">Connecter"</span>
+            <span className="inline-block">Attendee</span>
+            <span className="inline-block">Connecter</span>
           </h1>
           <div className="max-w-[600px] mx-auto border-gray-300 border rounded-sm overflow-hidden">
             <picture className="">
