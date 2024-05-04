@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 interface EventData {
   id: string;
@@ -24,6 +25,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
   const router = useRouter();
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [myColor, setMyColor] = useState<string>("#F4F4F5");
 
   useEffect(() => {
     setQuestions(pickupNQuestions(3));
@@ -34,6 +36,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     if (token) {
       router.push(`/event/${eventData.id}/portal`);
     }
+    setMyColor(getRandomColor());
   }, []);
 
   const [userData, setUserData] = useState<UserData>({
@@ -69,6 +72,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
       body: JSON.stringify({
         eventId: eventData.id,
         userData,
+        myColor,
       }),
     });
 
@@ -92,6 +96,31 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     setLoading(false);
   }
 
+  function getRandomColor() {
+    const letters = '37D';
+
+    let color = '#'
+    for (let i = 0; i < 3; i++) {
+      const tmp = letters[Math.floor(Math.random() * 3)]
+      color += tmp + tmp;
+    }
+
+    return color;
+  }
+
+
+  function getTextColor(color: string) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 125 ? true : false;
+  }
+
+  const handleColorChange = () => {
+    setMyColor(getRandomColor());
+  }
+
 
   return (
     <div className="px-3 h-screen flex items-center justify-center">
@@ -101,6 +130,12 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
         </CardHeader>
         <CardContent className="grid gap-4">
           <h2 className="text-lg font-bold">あなたの情報を入力してください</h2>
+          <div className="flex flex-col gap-3 items-center">
+            <Avatar className={` text-white w-20 h-20 hover:scale-105 active:scale-90 active:rotate-[359deg] duration-200 ease-in-out transition-all`} onClick={handleColorChange}>
+              <AvatarFallback className="text-2xl transition-all duration-500" style={{ backgroundColor: myColor, color: getTextColor(myColor) ? "#000000" : "#FFFFFF" }}>{userData.name.slice(0, 2)}</AvatarFallback>
+            </Avatar>
+            <p className="text-xs text-gray-500">アイコンをタップして色を変更</p>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="nickname">ニックネーム</Label>
             <Input id="nickname" placeholder="ニックネームを入力してください" onChange={onChangeNickname} />
