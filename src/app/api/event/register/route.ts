@@ -11,7 +11,7 @@ interface UserData {
 
 
 export async function POST(request: Request) {
-    const { eventId, userData }: { eventId: string; userData: UserData } = await request.json();
+    const { eventId, userData, myColor }: { eventId: string; userData: UserData, myColor: string } = await request.json();
 
     const db = getFirestore(firebaseAdminApp);
 
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const user = await db.collection('events').doc(eventId).collection('attendees').add({
         name: userData.name,
         info: userData.questions,
+        color: myColor,
         role: "audience"
     });
 
