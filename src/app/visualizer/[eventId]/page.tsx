@@ -135,8 +135,7 @@ export default function VisualizeNetwork({
       // title: attendee.role,
       // valueはconnectionの数によって変える
       value: connections.filter((connection) => connection.parent_id === attendee.id).length,
-      color: getRandomColor(),
-
+      color: attendee.color || getRandomColor(),
     }));
 
     let edges = connections.map((connection) => ({
@@ -222,7 +221,7 @@ export default function VisualizeNetwork({
       },
     },
     interaction: {
-      zoomView: false,
+      zoomView: true,
     },
   };
 
