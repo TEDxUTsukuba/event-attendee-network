@@ -35,6 +35,19 @@ export async function GET(request: Request) {
             return new Response("Not Found", { status: 404 });
         }
 
+        // すでにつながりがあるかどうかを確認
+        const connections = await db.collection('events').doc(eventId).collection('connections').where("parent_id", "==", decoded.userId).where("child_id", "==", userId).get();
+
+        if (!connections.empty) {
+            return new Response(JSON.stringify(
+                {
+                    name: targetUser.data()?.name,
+                    question: "すでにつながりがあります",
+                    color: targetUser.data()?.color || "#FFE4E5",
+                }
+            ), { status: 409 });
+        }
+
         const questions = targetUser.data()?.info;
 
         // questionsの中からキーのみをランダムに取得
