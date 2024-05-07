@@ -108,7 +108,17 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
     }, [])
 
     const connecttedAttendees = useMemo(() => {
-        return sortedAttendees.filter((attendee) => connections.find((connection) => connection.child_id === attendee.id));
+        return sortedAttendees.filter((attendee) => connections.find((connection) => connection.child_id === attendee.id)).sort((a, b) => {
+            const aConnections = connections.find((connection) => connection.child_id === a.id);
+            const bConnections = connections.find((connection) => connection.child_id === b.id);
+
+            if (!aConnections || !bConnections) {
+                return 0;
+            }
+
+            // timestampの降順でソート
+            return bConnections.timestamp.getTime() - aConnections.timestamp.getTime();
+        });
     }, [attendees, connections]);
 
     const notConnecttedAttendees = useMemo(() => {
