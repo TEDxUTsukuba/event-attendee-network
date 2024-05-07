@@ -8,6 +8,16 @@ import { collection, doc, getDocs, query, where } from "firebase/firestore";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "../ui/button";
+import { RefreshCcw } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 
 interface EventData {
@@ -25,6 +35,9 @@ interface ConnectionData {
 interface AttendeeData {
     id: string;
     name: string;
+    questions: {
+        [key: string]: string;
+    }; // TODO これはみれないようにする
 }
 
 export default function EventUserPortalPage({ eventData }: { eventData: EventData }) {
@@ -61,6 +74,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                 return {
                     id: doc.id,
                     name: docData.name,
+                    questions: docData.info,
                 };
             });
 
@@ -151,7 +165,27 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                     <p className="text-sm text-gray-500">自身のQRコードを他の参加者に見せて、参加者同士のつながりを作りましょう!</p>
                 </CardFooter>
             </Card>
-            <Button variant={showQRCode ? "secondary" : "default"} onClick={() => setShowQRCode(!showQRCode)}>{showQRCode ? "閉じる" : "QRコードを表示"}</Button>
+            <div className="flex justify-center gap-3">
+                <Button variant="outline" onClick={() => setShowQRCode(!showQRCode)} size="icon">
+                    <RefreshCcw size={24} />
+                </Button>
+                <Dialog>
+                    <DialogTrigger>自分の回答を見る</DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>自分の回答を見る</DialogTitle>
+                            <DialogDescription className="py-3">
+                                {myUserData && myUserData.questions && Object.entries(myUserData.questions).map(([question, answer]) => (
+                                    <div key={question} className="flex flex-col gap-2 pb-3">
+                                        <p className="text-sm font-bold">{question}</p>
+                                        <p className="text-sm text-rose-400">{answer}</p>
+                                    </div>
+                                ))}
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
+            </div>
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-3">
                     <div>
