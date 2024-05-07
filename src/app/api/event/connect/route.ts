@@ -44,6 +44,7 @@ export async function GET(request: Request) {
         return new Response(JSON.stringify({
             name: targetUser.data()?.name,
             question: randomKey,
+            color: targetUser.data()?.color || "#FFE4E5",
         }), {});
     } catch (e) {
         return new Response("Unauthorized", { status: 401 });
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
         return new Response(JSON.stringify({ connectionId: connection.id }), {});
 
     } catch (e) {
+        console.error(e);
         return new Response("Unauthorized", { status: 401 });
     }
 }
