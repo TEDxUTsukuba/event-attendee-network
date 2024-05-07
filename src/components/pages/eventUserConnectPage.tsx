@@ -34,6 +34,8 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
     const [error, setError] = useState('');
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [alreadyConnected, setAlreadyConnected] = useState(false);
+
     const { reward, isAnimating } = useReward('correctAni', 'confetti', {
         elementCount: 100,
         elementSize: 20,
@@ -48,7 +50,6 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
         spread: 70,
         decay: 0.9,
         lifetime: 200,
-
     });
 
     useEffect(() => {
@@ -59,8 +60,22 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
                     Authorization: `${token}`
                 }
             });
-            const data = await response.json();
-            setTargetUserData(data);
+
+            if (!response.ok) {
+                if (response.status == 409) {
+                    setConnected(true);
+                    setAlreadyConnected(true);
+                    const data = await response.json();
+                    setTargetUserData(data);
+                } else if (response.status == 404) {
+                    router.push(`/event/${eventData.id}/portal`);
+                } else {
+                    router.push(`/event/${eventData.id}/portal`);
+                }
+            } else {
+                const data = await response.json();
+                setTargetUserData(data);
+            }
         }
 
         const token = localStorage.getItem(`event-${eventData.id}-token`);
@@ -113,12 +128,11 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
             <Card className="max-w-md mx-auto w-full">
                 <CardHeader>
                     <h1 className="text-2xl font-bold">{eventData.name}</h1>
-                    <h2 className="text-lg font-bold">{targetUserData.name} とつながる</h2>
+                    <h2 className="text-lg font-bold"><span className="text-rose-600">{targetUserData.name}</span> とつながる</h2>
                     <div className="flex flex-col gap-3 items-center">
-                        <Avatar className={` text-white w-20 h-20 hover:scale-105 active:scale-90 active:rotate-[359deg] duration-200 ease-in-out transition-all`}>
+                        <Avatar className={` text-white w-20 h-20`}>
                             <AvatarFallback className="text-2xl transition-all duration-500" style={{ backgroundColor: targetUserData.color, color: getTextColor(targetUserData.color) ? "#000000" : "#FFFFFF" }}>{targetUserData.name.slice(0, 2)}</AvatarFallback>
                         </Avatar>
-                        <p className="text-xs text-gray-500">アイコンをタップして色を変更</p>
                     </div>
                     <div className="text-center">
                         <span id="correctAni"></span>
@@ -127,7 +141,7 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                     {connected ? <>
-                        <p className="text-3xl text-rose-600 text-center font-bold">つながりました！</p>
+                        <p className="text-2xl text-rose-600 text-center font-bold">{alreadyConnected ? "すでにつながっています！" : "つながりました！"}</p>
                         <Button size="lg" disabled={isAnimating} className="w-full" onClick={() => router.push(`/event/${eventData.id}/portal`)}>ポータルに戻る</Button>
                     </> : <>
                         <p className="text-sm text-gray-500">相手に関する質問に正解するとつながることができます。相手から答えを聞いてみましょう！</p>
