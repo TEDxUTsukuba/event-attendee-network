@@ -152,8 +152,8 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
                         </div>
                         <Button size="lg" className="w-full" onClick={onSubmit} disabled={!answer || loading}>つながる</Button>
                     </>}
-                </CardContent>
-            </Card>
-        </div>
+                </CardContent >
+            </Card >
+        </div >
     );
 }

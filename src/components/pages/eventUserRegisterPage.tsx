@@ -25,6 +25,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
   const router = useRouter();
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [myColor, setMyColor] = useState<string>("#F4F4F5");
 
   useEffect(() => {
@@ -62,7 +63,26 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
   }
 
   const onSubmit = async () => {
-    if (loading) {
+    const isNicknameValid: boolean = !(userData.name === undefined || (userData.name as string).trim() === "");
+    var isNotEmptyFlag: boolean = false;
+
+    if (!isNicknameValid) {
+      setErrors((prevErrors) => ({ ...prevErrors, e_nickname: "ニックネームを入力してください" }));
+      isNotEmptyFlag = true;
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, e_nickname: "" }));
+    }
+
+    questions.forEach((question) => {
+      if (userData.questions[question] === undefined || userData.questions[question].trim() === "") {
+        setErrors((prevErrors) => ({ ...prevErrors, [question]: "回答を入力してください" }));
+        isNotEmptyFlag = true;
+      } else {
+        setErrors((prevErrors) => ({ ...prevErrors, [question]: "" }));
+      }
+    });
+
+    if (loading || isNotEmptyFlag) {
       return;
     }
     setLoading(true);
@@ -139,12 +159,14 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
           <div className="grid gap-2">
             <Label htmlFor="nickname">ニックネーム</Label>
             <Input id="nickname" placeholder="ニックネームを入力してください" onChange={onChangeNickname} />
+            {errors.e_nickname && <p className="text-red-500">{errors.e_nickname}</p>}
           </div>
           <h2 className="text-lg font-bold">あなたに関する3つの質問</h2>
           {questions.map((question) => (
             <div key={question} className="grid gap-2">
               <Label htmlFor={question}>{question}</Label>
               <Input id={question} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
+              {errors[question] && <p className="text-red-500">{errors[question]}</p>}
             </div>
           ))}
         </CardContent>
