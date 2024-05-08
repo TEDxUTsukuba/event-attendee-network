@@ -6,6 +6,18 @@ import { useRouter } from "next/navigation";
 import { db } from "@/firebase/database";
 import { collection, doc, getDocs, query, where } from "firebase/firestore";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "../ui/button";
+import { RefreshCcw } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 
 interface EventData {
@@ -23,6 +35,9 @@ interface ConnectionData {
 interface AttendeeData {
     id: string;
     name: string;
+    questions: {
+        [key: string]: string;
+    }; // TODO これはみれないようにする
 }
 
 export default function EventUserPortalPage({ eventData }: { eventData: EventData }) {
@@ -31,6 +46,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
     const [userId, setUserId] = useState<string>("");
     const [connections, setConnections] = useState<ConnectionData[]>([]);
     const [attendees, setAttendees] = useState<AttendeeData[]>([]);
+    const [showQRCode, setShowQRCode] = useState<boolean>(false);
 
     const sortedAttendees = useMemo(() => {
         return attendees.sort((a, b) => {
@@ -42,7 +58,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
             bConnections.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
             return bConnections.length - aConnections.length;
-        });
+        }).filter((attendee) => attendee.id !== userId);
     }, [attendees, connections]);
 
 
@@ -58,6 +74,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                 return {
                     id: doc.id,
                     name: docData.name,
+                    questions: docData.info,
                 };
             });
 
@@ -104,17 +121,42 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
         setUserId(userId);
     }, [])
 
+    const connecttedAttendees = useMemo(() => {
+        return sortedAttendees.filter((attendee) => connections.find((connection) => connection.child_id === attendee.id)).sort((a, b) => {
+            const aConnections = connections.find((connection) => connection.child_id === a.id);
+            const bConnections = connections.find((connection) => connection.child_id === b.id);
+
+            if (!aConnections || !bConnections) {
+                return 0;
+            }
+
+            // timestampの降順でソート
+            return bConnections.timestamp.getTime() - aConnections.timestamp.getTime();
+        });
+    }, [attendees, connections]);
+
+    const notConnecttedAttendees = useMemo(() => {
+        return sortedAttendees.filter((attendee) => !connections.find((connection) => connection.child_id === attendee.id));
+    }, [attendees, connections]);
+
+    const myUserData = useMemo(() => {
+        return attendees.find((attendee) => attendee.id === userId);
+    }, [attendees, userId]);
+
     return (
         <div className="p-3 flex flex-col gap-6">
-            <Card className="max-w-md mx-auto">
+            <Card className={`max-w-md mx-auto duration-300 ease-in-out ${showQRCode ? "rotate-180" : "rotate-0"}`}>
                 <CardHeader>
                     <h1 className="text-2xl font-bold text-center">{eventData.name}</h1>
                 </CardHeader>
                 <CardContent>
                     {userId &&
                         <div className="text-center w-full flex flex-col gap-1">
-                            <h2 className="text-lg">あなたのID</h2>
-                            <QRCode value={`${location.origin}/event/${eventData.id}/connect/${userId}`} className="mx-auto" />
+                            <div>
+                                <h2 className="text-3xl font-bold text-primary">{myUserData?.name}</h2>
+                            </div>
+                            <p className="text-lg">{showQRCode ? "わたし" : "あなた"}のID</p>
+                            <QRCode fill="red" value={`${location.origin}/event/${eventData.id}/connect/${userId}`} className="mx-auto" />
                             <p className="text-xs font-thin">{userId}</p>
                         </div>
                     }
@@ -123,13 +165,62 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                     <p className="text-sm text-gray-500">自身のQRコードを他の参加者に見せて、参加者同士のつながりを作りましょう!</p>
                 </CardFooter>
             </Card>
-            <h2 className="text-lg">つながった人たち</h2>
-            <div className="flex flex-col gap-2">
-                {sortedAttendees.map((attendee) => (
-                    <div key={attendee.id} className="flex flex-col gap-1">
-                        <h3 className={`text-lg ${connections.find((connection) => connection.child_id === attendee.id) ? 'text-blue-500 font-bold' : 'text-gray-300'}`}>{attendee.name}</h3>
+            <div className="flex justify-center gap-3">
+                <Button variant="outline" onClick={() => setShowQRCode(!showQRCode)} size="icon">
+                    <RefreshCcw size={24} />
+                </Button>
+                <Dialog>
+                    <DialogTrigger>自分の回答を見る</DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>自分の回答を見る</DialogTitle>
+                            <DialogDescription className="py-3">
+                                {myUserData && myUserData.questions && Object.entries(myUserData.questions).map(([question, answer]) => (
+                                    <div key={question} className="flex flex-col gap-2 pb-3">
+                                        <p className="text-sm font-bold">{question}</p>
+                                        <p className="text-sm text-rose-400">{answer}</p>
+                                    </div>
+                                ))}
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
+            </div>
+            <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-3">
+                    <div>
+                        <h2 className="text-lg text-center">つながった人たち</h2>
+                        <div className="text-center">
+                            <p>
+                                <b className="text-5xl text-rose-600">{connecttedAttendees.length}</b><span className="text-xl"> / {attendees.length}</span>
+                            </p>
+                        </div>
                     </div>
-                ))}
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-6">
+                        {connecttedAttendees.map((attendee) => (
+                            <div key={attendee.id} className="flex flex-col gap-1 items-center">
+                                <Avatar className="w-16 h-16">
+                                    <AvatarFallback className="bg-rose-100">{attendee.name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-center truncate font-bold">{attendee.name}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <hr className="border-gray-300" />
+                <div className="flex flex-col gap-3">
+                    <h2 className="text-lg text-center">つながっていない人たち</h2>
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-6">
+                        {notConnecttedAttendees.map((attendee) => (
+                            <div key={attendee.id} className="flex flex-col gap-1 items-center">
+                                <Avatar className="w-16 h-16 border-gray-300 border">
+                                    <AvatarFallback className="bg-white">{attendee.name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs text-center truncate text-gray-400">{attendee.name}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
