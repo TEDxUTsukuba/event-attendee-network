@@ -22,11 +22,6 @@ interface UserData {
   };
 }
 
-type QuestionItem = {
-  index: number;
-  question: string;
-};
-
 export default function EventUserRegisterPage({ eventData }: { eventData: EventData }) {
   const router = useRouter();
   const [questions, setQuestions] = useState<string[]>([]);
@@ -187,9 +182,9 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
                 <Button variant="ghost" onClick={() => changeQuestion(index)} size="icon">
                   <RefreshCcw size={12} />
                 </Button>
-                <Label htmlFor={String(question)}>{question}</Label>
+                <Label htmlFor={question}>{question}</Label>
               </div>
-              <Input id={String(question)} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
+              <Input id={question} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
               {errors[question] && <p className="text-red-500">{errors[question]}</p>}
             </div>
           ))}
