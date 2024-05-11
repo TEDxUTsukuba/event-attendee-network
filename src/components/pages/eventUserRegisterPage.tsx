@@ -8,6 +8,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { RefreshCcw } from "lucide-react";
 
 interface EventData {
   id: string;
@@ -61,6 +62,19 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
       },
     });
   }
+
+  const changeQuestion = (index: number) => {
+    const newQuestions = [...questions];
+
+    let changeQuestion: string = pickupNQuestions(1)[0];
+    while (newQuestions.includes(changeQuestion)) {
+      changeQuestion = pickupNQuestions(1)[0];
+    }
+
+    newQuestions[index] = changeQuestion;
+
+    setQuestions(newQuestions);
+  };
 
   const onSubmit = async () => {
     const isNicknameValid: boolean = !(userData.name === undefined || (userData.name as string).trim() === "");
@@ -162,9 +176,14 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
             {errors.e_nickname && <p className="text-red-500">{errors.e_nickname}</p>}
           </div>
           <h2 className="text-lg font-bold">あなたに関する3つの質問</h2>
-          {questions.map((question) => (
+          {questions.map((question, index) => (
             <div key={question} className="grid gap-2">
-              <Label htmlFor={question}>{question}</Label>
+              <div className="flex gap-1 items-center">
+                <Button variant="ghost" onClick={() => changeQuestion(index)} size="icon">
+                  <RefreshCcw size={12} />
+                </Button>
+                <Label htmlFor={question}>{question}</Label>
+              </div>
               <Input id={question} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
               {errors[question] && <p className="text-red-500">{errors[question]}</p>}
             </div>
