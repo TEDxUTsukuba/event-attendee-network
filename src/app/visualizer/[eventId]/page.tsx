@@ -13,6 +13,7 @@ import VisGraph, {
   Network,
 } from 'react-vis-graph-wrapper';
 import { toast } from "sonner"
+import { useReward } from 'react-rewards';
 
 
 export default function VisualizeNetwork({
@@ -24,6 +25,21 @@ export default function VisualizeNetwork({
   const [attendees, setAttendees] = useState([] as any[]);
   const [connections, setConnections] = useState([] as any[]);
   const networkRef = useRef<Network | null>(null);
+  const { reward, isAnimating } = useReward('correctAni', 'confetti', {
+    elementCount: 100,
+    elementSize: 20,
+    spread: 150,
+    decay: 0.9,
+    lifetime: 200,
+  });
+  const { reward: connectionReward, isAnimating: isConnectionAnimating } = useReward('connectionAni', 'emoji', {
+    emoji: ['🙌', '🤝', '🎉', '✨', '🎵'],
+    elementCount: 50,
+    elementSize: 20,
+    spread: 200,
+    decay: 0.9,
+    lifetime: 200,
+  });
 
   function getRandomColor() {
     const letters = '89ABCDEF';
@@ -64,6 +80,7 @@ export default function VisualizeNetwork({
                 networkRef.current?.stopSimulation();
                 networkRef.current?.focus(change.doc.id, focusOptions);
                 networkRef.current?.selectNodes([change.doc.id]);
+                reward();
                 setTimeout(() => {
                   networkRef.current?.fit(moveToOptions);
                   networkRef.current?.startSimulation();
@@ -105,6 +122,7 @@ export default function VisualizeNetwork({
           if (networkRef.current) {
             setTimeout(() => {
               networkRef.current?.selectEdges([change.doc.id]);
+              connectionReward();
 
               setTimeout(() => {
                 networkRef.current?.stopSimulation();
@@ -336,11 +354,14 @@ export default function VisualizeNetwork({
           </li>
         ))}
       </ul> */}
+      {attendees.length === 0 && <p className="text-3xl font-bold fixed top-3 left-1/2 -translate-x-1/2">まだ誰も参加してません😭</p>}
       {graphData.nodes.length > 0 && (
         <div className="h-screen w-screen fixed left-0 top-0">
           <VisGraph ref={networkRef} graph={graphData} options={options} style={{ height: '100%', width: '100%' }} />
         </div>
       )}
+      <span id="correctAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
+      <span id="connectionAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
     </div>
   );
 }
