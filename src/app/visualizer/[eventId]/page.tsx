@@ -14,6 +14,7 @@ import VisGraph, {
 } from 'react-vis-graph-wrapper';
 import { toast } from "sonner"
 import { useReward } from 'react-rewards';
+import QRCode from "react-qr-code";
 
 
 export default function VisualizeNetwork({
@@ -362,6 +363,12 @@ export default function VisualizeNetwork({
       )}
       <span id="correctAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
       <span id="connectionAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
+      <div className="fixed top-3 right-3 flex gap-2">
+        <div className="p-1">
+          <QRCode value={`${location.origin}/event/${eventId}/register`} className="w-[10vw] h-[10vw]" />
+        </div>
+        <p className="text-center text-xs pt-1" style={{ writingMode: "vertical-rl" }}>QRコードをスキャンして参加</p>
+      </div>
     </div>
   );
 }
