@@ -21,15 +21,20 @@ interface UserData {
   };
 }
 
+type QuestionItem = {
+  index: number;
+  question: string;
+};
+
 export default function EventUserRegisterPage({ eventData }: { eventData: EventData }) {
   const router = useRouter();
-  const [questions, setQuestions] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<QuestionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [myColor, setMyColor] = useState<string>("#F4F4F5");
 
   useEffect(() => {
-    setQuestions(pickupNQuestions(3));
+    setQuestions(pickupNQuestions(3).map(item => ({ index: item.index, question: item.question })));
   }, []);
 
   useEffect(() => {
@@ -62,6 +67,21 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     });
   }
 
+  const changeQuestion = (index: number) => {
+    const newQuestions = [...questions];
+    const newQuestions_indexes = newQuestions.map((question) => question.index);
+
+    const newQuestion = pickupNQuestions(1, newQuestions_indexes).map(item => ({ index: item.index, question: item.question }));
+
+    if (newQuestions_indexes.includes(newQuestion[0].index)) {
+      changeQuestion(index);
+    }
+
+    newQuestions.splice(index, 1, newQuestion[0]);
+
+    setQuestions(newQuestions);
+  };
+
   const onSubmit = async () => {
     const isNicknameValid: boolean = !(userData.name === undefined || (userData.name as string).trim() === "");
     var isNotEmptyFlag: boolean = false;
@@ -74,11 +94,11 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     }
 
     questions.forEach((question) => {
-      if (userData.questions[question] === undefined || userData.questions[question].trim() === "") {
-        setErrors((prevErrors) => ({ ...prevErrors, [question]: "回答を入力してください" }));
+      if (userData.questions[question.question] === undefined || userData.questions[question.question].trim() === "") {
+        setErrors((prevErrors) => ({ ...prevErrors, [question.question]: "回答を入力してください" }));
         isNotEmptyFlag = true;
       } else {
-        setErrors((prevErrors) => ({ ...prevErrors, [question]: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, [question.question]: "" }));
       }
     });
 
@@ -162,11 +182,16 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
             {errors.e_nickname && <p className="text-red-500">{errors.e_nickname}</p>}
           </div>
           <h2 className="text-lg font-bold">あなたに関する3つの質問</h2>
-          {questions.map((question) => (
-            <div key={question} className="grid gap-2">
-              <Label htmlFor={question}>{question}</Label>
-              <Input id={question} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
-              {errors[question] && <p className="text-red-500">{errors[question]}</p>}
+          {questions.map((question, index) => (
+            <div key={question.index} className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor={String(question.index)}>{question.question}</Label>
+                <Button size="sm" onClick={() => changeQuestion(index)}>
+                  変更
+                </Button>
+              </div>
+              <Input id={String(question.index)} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question.question, e)} />
+              {errors[question.question] && <p className="text-red-500">{errors[question.question]}</p>}
             </div>
           ))}
         </CardContent>
