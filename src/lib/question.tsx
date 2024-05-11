@@ -1,5 +1,5 @@
 
-export const pickupNQuestions = (n: number, newQuestions_indexes?: number[]) => {
+export const pickupNQuestions = (n: number) => {
   const questions = [
     "好きな食べ物は何ですか？",
     "好きな飲み物は何ですか？",
@@ -13,7 +13,6 @@ export const pickupNQuestions = (n: number, newQuestions_indexes?: number[]) => 
     "好きなスポーツは何ですか？",
     "好きな季節はいつですか？",
     "朝型ですか？夜型ですか？",
-    // "コーヒー派ですか？紅茶派ですか？",
     "好きな動物は何ですか？",
     "好きな色は何ですか？",
     "幸せを感じる瞬間はどんな時ですか？",
@@ -24,7 +23,6 @@ export const pickupNQuestions = (n: number, newQuestions_indexes?: number[]) => 
     "子供の頃の思い出で印象に残っているエピソードは？",
     "好きな本のジャンルは何ですか？",
     "好きなテレビ番組は何ですか？",
-    // "好きな花は何ですか？",
     "好きな漫画やアニメは何ですか？",
     "好きなキャラクターは誰ですか？",
     "最近ハマっていることは何ですか？",
@@ -34,11 +32,8 @@ export const pickupNQuestions = (n: number, newQuestions_indexes?: number[]) => 
     "出身地はどこですか？",
     "中学生の頃の部活動は何でしたか？",
   ];
-  const filteredQuestions = questions.filter((_, index) => !newQuestions_indexes?.includes(index));
-  const selectedQuestions = filteredQuestions
-    .map((question, index) => ({ question, index }))
-    .sort(() => 0.5 - Math.random())
+  const selectedQuestions = questions.sort(() => 0.5 - Math.random())
     .slice(0, n);
-  
+
   return selectedQuestions;
 }

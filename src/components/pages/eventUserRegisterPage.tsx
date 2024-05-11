@@ -8,6 +8,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { RefreshCcw } from "lucide-react";
 
 interface EventData {
   id: string;
@@ -28,13 +29,13 @@ type QuestionItem = {
 
 export default function EventUserRegisterPage({ eventData }: { eventData: EventData }) {
   const router = useRouter();
-  const [questions, setQuestions] = useState<QuestionItem[]>([]);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [myColor, setMyColor] = useState<string>("#F4F4F5");
 
   useEffect(() => {
-    setQuestions(pickupNQuestions(3).map(item => ({ index: item.index, question: item.question })));
+    setQuestions(pickupNQuestions(3));
   }, []);
 
   useEffect(() => {
@@ -69,15 +70,13 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
 
   const changeQuestion = (index: number) => {
     const newQuestions = [...questions];
-    const newQuestions_indexes = newQuestions.map((question) => question.index);
 
-    const newQuestion = pickupNQuestions(1, newQuestions_indexes).map(item => ({ index: item.index, question: item.question }));
-
-    if (newQuestions_indexes.includes(newQuestion[0].index)) {
-      changeQuestion(index);
+    let changeQuestion: string = pickupNQuestions(1)[0];
+    while (newQuestions.includes(changeQuestion)) {
+      changeQuestion = pickupNQuestions(1)[0];
     }
 
-    newQuestions.splice(index, 1, newQuestion[0]);
+    newQuestions[index] = changeQuestion;
 
     setQuestions(newQuestions);
   };
@@ -94,11 +93,11 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     }
 
     questions.forEach((question) => {
-      if (userData.questions[question.question] === undefined || userData.questions[question.question].trim() === "") {
-        setErrors((prevErrors) => ({ ...prevErrors, [question.question]: "回答を入力してください" }));
+      if (userData.questions[question] === undefined || userData.questions[question].trim() === "") {
+        setErrors((prevErrors) => ({ ...prevErrors, [question]: "回答を入力してください" }));
         isNotEmptyFlag = true;
       } else {
-        setErrors((prevErrors) => ({ ...prevErrors, [question.question]: "" }));
+        setErrors((prevErrors) => ({ ...prevErrors, [question]: "" }));
       }
     });
 
@@ -183,15 +182,15 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
           </div>
           <h2 className="text-lg font-bold">あなたに関する3つの質問</h2>
           {questions.map((question, index) => (
-            <div key={question.index} className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor={String(question.index)}>{question.question}</Label>
-                <Button size="sm" onClick={() => changeQuestion(index)}>
-                  変更
+            <div key={question} className="grid gap-2">
+              <div className="flex gap-1 items-center">
+                <Button variant="ghost" onClick={() => changeQuestion(index)} size="icon">
+                  <RefreshCcw size={12} />
                 </Button>
+                <Label htmlFor={String(question)}>{question}</Label>
               </div>
-              <Input id={String(question.index)} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question.question, e)} />
-              {errors[question.question] && <p className="text-red-500">{errors[question.question]}</p>}
+              <Input id={String(question)} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
+              {errors[question] && <p className="text-red-500">{errors[question]}</p>}
             </div>
           ))}
         </CardContent>
