@@ -229,10 +229,10 @@ export default function VisualizeNetwork({
       enabled: true,
       solver: 'forceAtlas2Based',
       forceAtlas2Based: {
-        gravitationalConstant: -140,
+        gravitationalConstant: -100,
         centralGravity: 0.025,
         springLength: 120,
-        springConstant: 0.5,
+        springConstant: 0.1,
         avoidOverlap: 5,
       },
       maxVelocity: 150,
