@@ -143,6 +143,12 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
         return attendees.find((attendee) => attendee.id === userId);
     }, [attendees, userId]);
 
+    const handleResetAccount = () => {
+        localStorage.removeItem(`event-${eventData.id}-token`);
+        localStorage.removeItem(`event-${eventData.id}-userId`);
+        router.push(`/event/${eventData.id}/register`);
+    }
+
     return (
         <div className="p-3 flex flex-col gap-6">
             <Card className={`max-w-md mx-auto duration-300 ease-in-out ${showQRCode ? "rotate-180" : "rotate-0"}`}>
@@ -221,6 +227,11 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                         ))}
                     </div>
                 </div>
+                {!myUserData && (
+                    <Button variant="link" onClick={handleResetAccount}>
+                        アカウントをリセット
+                    </Button>
+                )}
             </div>
         </div>
     );
