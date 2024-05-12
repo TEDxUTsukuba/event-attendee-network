@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { db } from "@/firebase/database";
 import { pickupNQuestions } from "@/lib/question";
 import { doc, collection, query, onSnapshot, addDoc } from "firebase/firestore";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, use } from "react";
 import VisGraph, {
   GraphData,
   GraphEvents,
@@ -26,6 +26,7 @@ export default function VisualizeNetwork({
   const [attendees, setAttendees] = useState([] as any[]);
   const [connections, setConnections] = useState([] as any[]);
   const networkRef = useRef<Network | null>(null);
+  const [locationOrigin, setLocationOrigin] = useState('' as string);
   const { reward, isAnimating } = useReward('correctAni', 'confetti', {
     elementCount: 100,
     elementSize: 20,
@@ -41,6 +42,10 @@ export default function VisualizeNetwork({
     decay: 0.9,
     lifetime: 200,
   });
+
+  useEffect(() => {
+    setLocationOrigin(location.origin);
+  }, []);
 
   function getRandomColor() {
     const letters = '89ABCDEF';
@@ -153,7 +158,7 @@ export default function VisualizeNetwork({
       label: attendee.name,
       // title: attendee.role,
       // valueはconnectionの数によって変える
-      value: connections.filter((connection) => connection.parent_id === attendee.id).length,
+      value: connections.filter((connection) => connection.parent_id === attendee.id).length / 10,
       color: attendee.color || getRandomColor(),
     }));
 
@@ -191,7 +196,7 @@ export default function VisualizeNetwork({
       arrows: {
         to: {
           enabled: true,
-          scaleFactor: 1.25,
+          scaleFactor: 1.05,
         },
       },
       width: 2.5,
@@ -200,12 +205,13 @@ export default function VisualizeNetwork({
       shape: "dot",
       scaling: {
         label: {
-          min: 8,
-          max: 20,
+          min: 16,
+          max: 18,
         },
       },
       font: {
         background: 'rgba(255,255,255,0.8)',
+        size: 100,
       },
       color: {
         border: '#000000',
@@ -215,6 +221,7 @@ export default function VisualizeNetwork({
           background: '#ffcc00',
         },
       },
+      size: 20,
       labelHighlightBold: true,
     },
     height: '100%',
@@ -222,13 +229,13 @@ export default function VisualizeNetwork({
       enabled: true,
       solver: 'forceAtlas2Based',
       forceAtlas2Based: {
-        gravitationalConstant: -100,
-        centralGravity: 0.005,
-        springLength: 200,
+        gravitationalConstant: -140,
+        centralGravity: 0.025,
+        springLength: 120,
         springConstant: 0.5,
-        avoidOverlap: 3.5,
+        avoidOverlap: 5,
       },
-      maxVelocity: 50,
+      maxVelocity: 150,
       minVelocity: 0.75,
       timestep: 0.1,
       stabilization: {
@@ -238,6 +245,10 @@ export default function VisualizeNetwork({
         onlyDynamicEdges: true,
         fit: true,
       },
+      // wind: {
+      //   x: 1.0,
+      //   y: 1.0,
+      // },
     },
     interaction: {
       zoomView: true,
@@ -252,7 +263,7 @@ export default function VisualizeNetwork({
   };
 
   const focusOptions: any = {
-    scale: 1.5,
+    scale: 2.0,
     animation: {
       duration: 1000,
       easingFunction: "easeInOutQuad",
@@ -365,7 +376,9 @@ export default function VisualizeNetwork({
       <span id="connectionAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
       <div className="fixed top-3 right-3 flex gap-2">
         <div className="p-1">
-          <QRCode value={`${location.origin}/event/${eventId}/register`} className="w-[10vw] h-[10vw]" />
+          {locationOrigin && (
+            <QRCode value={`${locationOrigin}/event/${eventId}/register`} className="w-[10vw] h-[10vw]" />
+          )}
         </div>
         <p className="text-center text-xs pt-1" style={{ writingMode: "vertical-rl" }}>QRコードをスキャンして参加</p>
       </div>

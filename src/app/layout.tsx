@@ -6,8 +6,8 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AttendeeConnecter",
-  description: "AttendeeConnecter 参加者同士のつながりを可視化する",
+  title: "友達コネクション",
+  description: "友達コネクション 参加者同士のつながりを可視化する",
 };
 
 export default function RootLayout({
