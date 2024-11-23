@@ -189,10 +189,13 @@ export default function VisualizeNetwork({
 
     const nodes: Node[] = attendees.map((attendee) => ({
       id: attendee.id,
-      label: attendee.name,
+      // label: attendee.name,
+      label: "xxxxx",
       // title: attendee.role,
       // valueはconnectionの数によって変える
       value: connections.filter((connection) => connection.parent_id === attendee.id).length / 10,
+      // opacityはconnectionの数によって変える
+      opacity: 0.6 + (connections.filter((connection) => connection.parent_id === attendee.id).length / attendees.length),
       color: attendee.color || getRandomColor(),
     }));
 
@@ -351,7 +354,7 @@ export default function VisualizeNetwork({
           return 0;
         }
       });
-    }, 100);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
@@ -398,12 +401,12 @@ export default function VisualizeNetwork({
           {timelapseMode ? 'タイムラプスモード終了' : 'タイムラプスモード開始'}
         </Button>
       </div>
-      <div className="fixed right-3 top-3 z-50 max-h-[30vh] overflow-scroll text-right">
+      {/* <div className="fixed right-3 top-3 z-50 max-h-[30vh] overflow-scroll text-right">
         {connectionAttendeesData.map((connection, index) => (
           <div key={connection.id} style={{ fontSize: `${1.5 - 0.2 * Math.min(index, 5)}rem`, opacity: 1.2 - index / connectionAttendeesData.length }} className="transform duration-75">
             {connection.parent.name} → {connection.child.name}
           </div>))}
-      </div>
+      </div> */}
       {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
         <Button onClick={focusRandomNode}>Focus Random Node</Button>
         <Button onClick={debugRandomAddNode}>Debug Random Add Node</Button>
