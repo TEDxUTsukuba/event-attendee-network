@@ -189,9 +189,9 @@ export default function VisualizeNetwork({
 
     const nodes: Node[] = attendees.map((attendee) => ({
       id: attendee.id,
-      // label: attendee.name,
-      label: "xxxxx",
-      // title: attendee.role,
+      label: attendee.name,
+      // label: "xxxxx",
+      title: attendee.role,
       // valueはconnectionの数によって変える
       value: connections.filter((connection) => connection.parent_id === attendee.id).length / 10,
       // opacityはconnectionの数によって変える
