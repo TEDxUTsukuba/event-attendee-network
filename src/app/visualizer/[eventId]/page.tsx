@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { db } from "@/firebase/database";
 import { pickupNQuestions } from "@/lib/question";
 import { doc, collection, query, onSnapshot, addDoc } from "firebase/firestore";
@@ -187,15 +186,37 @@ export default function VisualizeNetwork({
   const graphData = useMemo(() => {
     const { connections } = sortedConnectionsData;
 
+    // connectionの数が一番多いattendeeを取得
+    const maxConnectionAttendeeId = connections.reduce((acc, connection) => {
+      if (!acc[connection.parent_id]) {
+        acc[connection.parent_id] = 0;
+      }
+      if (!acc[connection.child_id]) {
+        acc[connection.child_id] = 0;
+      }
+
+      acc[connection.parent_id]++;
+      acc[connection.child_id]++;
+
+      return acc;
+    }, {} as any);
+
+    // top5のattendeeを取得
+    const top5Attendees = Object.entries(maxConnectionAttendeeId)
+      .sort((a: any, b: any) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id]) => id);
+
     const nodes: Node[] = attendees.map((attendee) => ({
       id: attendee.id,
       label: attendee.name,
+      shape: top5Attendees.includes(attendee.id) ? 'star' : 'dot',
       // label: "xxxxx",
       title: attendee.role,
       // valueはconnectionの数によって変える
       value: connections.filter((connection) => connection.parent_id === attendee.id).length / 10,
       // opacityはconnectionの数によって変える
-      opacity: 0.6 + (connections.filter((connection) => connection.parent_id === attendee.id).length / attendees.length),
+      opacity: Math.min(0.6 + (connections.filter((c) => c.parent_id === attendee.id).length / attendees.length), 1),
       color: attendee.color || getRandomColor(),
     }));
 
@@ -203,6 +224,12 @@ export default function VisualizeNetwork({
       id: connection.id,
       from: connection.parent_id,
       to: connection.child_id,
+      width: 6 * (connections.filter((c) => c.parent_id === connection.parent_id).length / attendees.length),
+      smooth: {
+        enabled: true,
+        type: 'dynamic',
+        roundness: 0.5,
+      }
     }));
 
     edges = edges.filter((edge) => edge.from !== edge.to);
@@ -325,7 +352,11 @@ export default function VisualizeNetwork({
     const inter1 = setInterval(() => {
       if (!networkRef.current) return;
 
-      if (Math.random() < 0.2) {
+      const random_num = Math.random();
+      console.log(random_num);
+      if (random_num < 0.02) {
+        setTimelapseMode(true);
+      } else if (random_num < 0.2) {
         focusRandomNode();
         console.log('focus');
       } else {
@@ -354,7 +385,7 @@ export default function VisualizeNetwork({
           return 0;
         }
       });
-    }, 1000);
+    }, 150);
 
     return () => {
       clearInterval(interval);
@@ -396,11 +427,12 @@ export default function VisualizeNetwork({
 
   return (
     <div>
-      <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
+      {timelapseMode && <p className="fixed top-3 left-1/2 -translate-x-1/2 text-3xl font-bold">タイムラプスモード</p>}
+      {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
         <Button onClick={() => setTimelapseMode(!timelapseMode)}>
           {timelapseMode ? 'タイムラプスモード終了' : 'タイムラプスモード開始'}
         </Button>
-      </div>
+      </div> */}
       {/* <div className="fixed right-3 top-3 z-50 max-h-[30vh] overflow-scroll text-right">
         {connectionAttendeesData.map((connection, index) => (
           <div key={connection.id} style={{ fontSize: `${1.5 - 0.2 * Math.min(index, 5)}rem`, opacity: 1.2 - index / connectionAttendeesData.length }} className="transform duration-75">
