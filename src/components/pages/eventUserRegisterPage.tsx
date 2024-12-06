@@ -67,7 +67,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
     var isNotEmptyFlag: boolean = false;
 
     if (!isNicknameValid) {
-      setErrors((prevErrors) => ({ ...prevErrors, e_nickname: "ニックネームを入力してください" }));
+      setErrors((prevErrors) => ({ ...prevErrors, e_nickname: "ニックネームを入力してください / Please enter a nickname" }));
       isNotEmptyFlag = true;
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, e_nickname: "" }));
@@ -75,7 +75,7 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
 
     questions.forEach((question) => {
       if (userData.questions[question] === undefined || userData.questions[question].trim() === "") {
-        setErrors((prevErrors) => ({ ...prevErrors, [question]: "回答を入力してください" }));
+        setErrors((prevErrors) => ({ ...prevErrors, [question]: "回答を入力してください / Please enter an answer" }));
         isNotEmptyFlag = true;
       } else {
         setErrors((prevErrors) => ({ ...prevErrors, [question]: "" }));
@@ -149,30 +149,30 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
           <h1 className="text-2xl font-bold">{eventData.name}</h1>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <h2 className="text-lg font-bold">あなたの情報を入力してください</h2>
+          <h2 className="text-lg font-bold">あなたの情報を入力してください / Please enter your information</h2>
           <div className="flex flex-col gap-3 items-center">
             <Avatar className={` text-white w-20 h-20 hover:scale-105 active:scale-90 active:rotate-[359deg] duration-200 ease-in-out transition-all`} onClick={handleColorChange}>
               <AvatarFallback className="text-2xl transition-all duration-500" style={{ backgroundColor: myColor, color: getTextColor(myColor) ? "#000000" : "#FFFFFF" }}>{userData.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            <p className="text-xs text-gray-500">アイコンをタップして色を変更</p>
+            <p className="text-xs text-gray-500">アイコンをタップして色を変更 / Tap the icon to change the color</p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="nickname">ニックネーム</Label>
-            <Input id="nickname" placeholder="ニックネームを入力してください" onChange={onChangeNickname} />
+            <Input id="nickname" placeholder="ニックネームを入力してください / Please enter a nickname" onChange={onChangeNickname} />
             {errors.e_nickname && <p className="text-red-500">{errors.e_nickname}</p>}
           </div>
-          <h2 className="text-lg font-bold">あなたに関する3つの質問</h2>
+          <h2 className="text-lg font-bold">あなたに関する3つの質問 / Three questions about you</h2>
           {questions.map((question) => (
             <div key={question} className="grid gap-2">
               <Label htmlFor={question}>{question}</Label>
-              <Input id={question} placeholder="回答を入力してください" onChange={(e) => onChangeQuestion(question, e)} />
+              <Input id={question} placeholder="回答を入力してください / Please enter an answer" onChange={(e) => onChangeQuestion(question, e)} />
               {errors[question] && <p className="text-red-500">{errors[question]}</p>}
             </div>
           ))}
         </CardContent>
         <CardFooter>
           <Button size="lg" className="w-full" onClick={onSubmit} disabled={loading}>
-            登録
+            登録 / Register
           </Button>
         </CardFooter>
       </Card>
