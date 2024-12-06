@@ -128,7 +128,7 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
             <Card className="max-w-md mx-auto w-full">
                 <CardHeader>
                     <h1 className="text-2xl font-bold">{eventData.name}</h1>
-                    <h2 className="text-lg font-bold"><span className="text-rose-600">{targetUserData.name}</span> とつながる</h2>
+                    <h2 className="text-lg font-bold"><span className="text-rose-600">{targetUserData.name}</span> とつながる / Connect with</h2>
                     <div className="flex flex-col gap-3 items-center">
                         <Avatar className={` text-white w-20 h-20`}>
                             <AvatarFallback className="text-2xl transition-all duration-500" style={{ backgroundColor: targetUserData.color, color: getTextColor(targetUserData.color) ? "#000000" : "#FFFFFF" }}>{targetUserData.name.slice(0, 2)}</AvatarFallback>
@@ -141,13 +141,13 @@ export default function EventUserConnectPage({ eventData, targetUserId }: { even
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                     {connected ? <>
-                        <p className="text-2xl text-rose-600 text-center font-bold">{alreadyConnected ? "すでにつながっています！" : "つながりました！"}</p>
-                        <Button size="lg" disabled={isAnimating} className="w-full" onClick={() => router.push(`/event/${eventData.id}/portal`)}>ポータルに戻る</Button>
+                        <p className="text-2xl text-rose-600 text-center font-bold">{alreadyConnected ? "すでにつながっています！ / Already connected!" : "つながりました！ / Connected!"}</p>
+                        <Button size="lg" disabled={isAnimating} className="w-full" onClick={() => router.push(`/event/${eventData.id}/portal`)}>ポータルに戻る / Return to portal</Button>
                     </> : <>
-                        <p className="text-sm text-gray-500">相手に関する質問に正解するとつながることができます。相手から答えを聞いてみましょう！</p>
+                        <p className="text-sm text-gray-500">相手に関する質問に正解するとつながることができます。相手から答えを聞いてみましょう！ / Answer the question about the other person correctly to connect. Try asking them for the answer!</p>
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="answer" className="block">{targetUserData.question}</Label>
-                            <Input id="answer" type="text" placeholder="答え" className="border border-gray-300 rounded-md w-full" onChange={(e) => setAnswer(e.target.value)} />
+                            <Input id="answer" type="text" placeholder="答え / Answer" className="border border-gray-300 rounded-md w-full" onChange={(e) => setAnswer(e.target.value)} />
                             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                         </div>
                         <Button size="lg" className="w-full" onClick={onSubmit} disabled={!answer || loading}>つながる</Button>

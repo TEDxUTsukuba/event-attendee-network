@@ -161,7 +161,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                             <div>
                                 <h2 className="text-3xl font-bold text-primary">{myUserData?.name}</h2>
                             </div>
-                            <p className="text-lg">{showQRCode ? "わたし" : "あなた"}のID</p>
+                            <p className="text-lg">{showQRCode ? "わたし / Me" : "あなた / You"}のID</p>
                             <QRCode fill="red" value={`${location.origin}/event/${eventData.id}/connect/${userId}`} className="mx-auto" />
                             <p className="text-xs font-thin">{userId}</p>
                         </div>
@@ -176,10 +176,12 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                     <RefreshCcw size={24} />
                 </Button>
                 <Dialog>
-                    <DialogTrigger>自分の回答を見る</DialogTrigger>
+                    <DialogTrigger>
+                        <Button variant="outline">自分の回答を見る / View My Answers</Button>
+                    </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>自分の回答を見る</DialogTitle>
+                            <DialogTitle>自分の回答を見る / View My Answers</DialogTitle>
                             <DialogDescription className="py-3">
                                 {myUserData && myUserData.questions && Object.entries(myUserData.questions).map(([question, answer]) => (
                                     <div key={question} className="flex flex-col gap-2 pb-3">
@@ -195,7 +197,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-3">
                     <div>
-                        <h2 className="text-lg text-center">つながった人たち</h2>
+                        <h2 className="text-lg text-center">つながった人たち / Connected People</h2>
                         <div className="text-center">
                             <p>
                                 <b className="text-5xl text-rose-600">{connecttedAttendees.length}</b><span className="text-xl"> / {attendees.length}</span>
@@ -215,7 +217,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                 </div>
                 <hr className="border-gray-300" />
                 <div className="flex flex-col gap-3">
-                    <h2 className="text-lg text-center">つながっていない人たち</h2>
+                    <h2 className="text-lg text-center">つながっていない人たち / Not Connected People</h2>
                     <div className="grid grid-cols-3 gap-x-3 gap-y-6">
                         {notConnecttedAttendees.map((attendee) => (
                             <div key={attendee.id} className="flex flex-col gap-1 items-center">
@@ -229,7 +231,7 @@ export default function EventUserPortalPage({ eventData }: { eventData: EventDat
                 </div>
                 {!myUserData && (
                     <Button variant="link" onClick={handleResetAccount}>
-                        アカウントをリセット
+                        アカウントをリセット / Reset Account
                     </Button>
                 )}
             </div>

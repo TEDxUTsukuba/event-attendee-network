@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { db } from "@/firebase/database";
 import { pickupNQuestions } from "@/lib/question";
 import { doc, collection, query, onSnapshot, addDoc } from "firebase/firestore";
@@ -27,6 +26,8 @@ export default function VisualizeNetwork({
   const [connections, setConnections] = useState([] as any[]);
   const networkRef = useRef<Network | null>(null);
   const [locationOrigin, setLocationOrigin] = useState('' as string);
+  const [timelapseMode, setTimelapseMode] = useState(false);
+  const [currentConnectionIndex, setCurrentConnectionIndex] = useState(0);
   const { reward, isAnimating } = useReward('correctAni', 'confetti', {
     elementCount: 100,
     elementSize: 20,
@@ -55,6 +56,36 @@ export default function VisualizeNetwork({
     }
     return color;
   }
+
+  const sortedConnectionsData: { connections: any[] } = useMemo(() => {
+    if (timelapseMode) {
+      const sortedConnections = connections.sort((a, b) => a.timestamp - b.timestamp)
+        .slice(0, timelapseMode ? currentConnectionIndex + 1 : connections.length)
+
+      return { connections: sortedConnections };
+    } else {
+      return { connections };
+    }
+  }, [connections, timelapseMode, currentConnectionIndex])
+
+  const connectionAttendeesData = useMemo(() => {
+    // connectionデータに対応するattendeeデータを取得して返す
+    const { connections } = sortedConnectionsData;
+
+    const connectionAttendees = connections.map((connection) => {
+      const parent = attendees.find((attendee) => attendee.id === connection.parent_id);
+      const child = attendees.find((attendee) => attendee.id === connection.child_id);
+
+      return {
+        id: connection.id,
+        timestamp: connection.timestamp,
+        parent,
+        child,
+      };
+    }).reverse()
+
+    return connectionAttendees;
+  }, [sortedConnectionsData])
 
   useEffect(() => {
     if (!eventId) return;
@@ -153,12 +184,39 @@ export default function VisualizeNetwork({
   }, [eventId]);
 
   const graphData = useMemo(() => {
+    const { connections } = sortedConnectionsData;
+
+    // connectionの数が一番多いattendeeを取得
+    const maxConnectionAttendeeId = connections.reduce((acc, connection) => {
+      if (!acc[connection.parent_id]) {
+        acc[connection.parent_id] = 0;
+      }
+      if (!acc[connection.child_id]) {
+        acc[connection.child_id] = 0;
+      }
+
+      acc[connection.parent_id]++;
+      acc[connection.child_id]++;
+
+      return acc;
+    }, {} as any);
+
+    // top5のattendeeを取得
+    const top5Attendees = Object.entries(maxConnectionAttendeeId)
+      .sort((a: any, b: any) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id]) => id);
+
     const nodes: Node[] = attendees.map((attendee) => ({
       id: attendee.id,
       label: attendee.name,
-      // title: attendee.role,
+      shape: top5Attendees.includes(attendee.id) ? 'star' : 'dot',
+      // label: "xxxxx",
+      title: attendee.role,
       // valueはconnectionの数によって変える
       value: connections.filter((connection) => connection.parent_id === attendee.id).length / 10,
+      // opacityはconnectionの数によって変える
+      opacity: Math.min(0.6 + (connections.filter((c) => c.parent_id === attendee.id).length / attendees.length), 1),
       color: attendee.color || getRandomColor(),
     }));
 
@@ -166,6 +224,12 @@ export default function VisualizeNetwork({
       id: connection.id,
       from: connection.parent_id,
       to: connection.child_id,
+      width: 6 * (connections.filter((c) => c.parent_id === connection.parent_id).length / attendees.length),
+      smooth: {
+        enabled: true,
+        type: 'dynamic',
+        roundness: 0.5,
+      }
     }));
 
     edges = edges.filter((edge) => edge.from !== edge.to);
@@ -174,7 +238,7 @@ export default function VisualizeNetwork({
       nodes,
       edges,
     };
-  }, [attendees, connections]);
+  }, [attendees, sortedConnectionsData, timelapseMode, currentConnectionIndex]);
 
   const options: Options = {
     autoResize: true,
@@ -245,10 +309,10 @@ export default function VisualizeNetwork({
         onlyDynamicEdges: true,
         fit: true,
       },
-      // wind: {
-      //   x: 1.0,
-      //   y: 1.0,
-      // },
+      wind: {
+        x: 1.0,
+        y: 1.0,
+      },
     },
     interaction: {
       zoomView: true,
@@ -283,10 +347,16 @@ export default function VisualizeNetwork({
   }
 
   useEffect(() => {
+    if (timelapseMode) return
+
     const inter1 = setInterval(() => {
       if (!networkRef.current) return;
 
-      if (Math.random() < 0.2) {
+      const random_num = Math.random();
+      console.log(random_num);
+      if (random_num < 0.02) {
+        setTimelapseMode(true);
+      } else if (random_num < 0.2) {
         focusRandomNode();
         console.log('focus');
       } else {
@@ -297,17 +367,30 @@ export default function VisualizeNetwork({
       }
     }, 5000);
 
-    // const inter2 = setInterval(() => {
-    //   if (!networkRef.current) return;
-    //   networkRef.current?.moveNode(attendees[Math.floor(Math.random() * attendees.length)].id, Math.random() * 100, Math.random() * 100);
-    // }, 500);
-
     return () => {
       clearInterval(inter1);
-      // clearInterval(inter2);
     }
 
-  }, [attendees, connections]);
+  }, [attendees, connections, timelapseMode]);
+
+  useEffect(() => {
+    if (!timelapseMode) return;
+
+    const interval = setInterval(() => {
+      setCurrentConnectionIndex((prevIndex) => {
+        if (prevIndex < connections.length - 1) {
+          return prevIndex + 1;
+        } else {
+          setTimelapseMode(false);
+          return 0;
+        }
+      });
+    }, 150);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [timelapseMode, connections]);
 
   const debugRandomAddNode = async () => {
     const name = Math.random().toString(36).slice(-8);
@@ -344,6 +427,18 @@ export default function VisualizeNetwork({
 
   return (
     <div>
+      {timelapseMode && <p className="fixed top-3 left-1/2 -translate-x-1/2 text-3xl font-bold">タイムラプスモード</p>}
+      {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
+        <Button onClick={() => setTimelapseMode(!timelapseMode)}>
+          {timelapseMode ? 'タイムラプスモード終了' : 'タイムラプスモード開始'}
+        </Button>
+      </div> */}
+      {/* <div className="fixed right-3 top-3 z-50 max-h-[30vh] overflow-scroll text-right">
+        {connectionAttendeesData.map((connection, index) => (
+          <div key={connection.id} style={{ fontSize: `${1.5 - 0.2 * Math.min(index, 5)}rem`, opacity: 1.2 - index / connectionAttendeesData.length }} className="transform duration-75">
+            {connection.parent.name} → {connection.child.name}
+          </div>))}
+      </div> */}
       {/* <div className="fixed left-3 top-3 z-50 flex flex-col gap-3">
         <Button onClick={focusRandomNode}>Focus Random Node</Button>
         <Button onClick={debugRandomAddNode}>Debug Random Add Node</Button>
@@ -374,7 +469,7 @@ export default function VisualizeNetwork({
       )}
       <span id="correctAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
       <span id="connectionAni" className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
-      <div className="fixed top-3 right-3 flex gap-2">
+      <div className="fixed bottom-3 right-3 flex gap-2">
         <div className="p-1">
           {locationOrigin && (
             <QRCode value={`${locationOrigin}/event/${eventId}/register`} className="w-[10vw] h-[10vw]" />
