@@ -8,6 +8,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { RefreshCcw } from "lucide-react";
 
 interface EventData {
   id: string;
@@ -61,6 +62,19 @@ export default function EventUserRegisterPage({ eventData }: { eventData: EventD
       },
     });
   }
+
+  const changeQuestion = (index: number) => {
+    const newQuestions = [...questions];
+
+    let changeQuestion: string = pickupNQuestions(1)[0];
+    while (newQuestions.includes(changeQuestion)) {
+      changeQuestion = pickupNQuestions(1)[0];
+    }
+
+    newQuestions[index] = changeQuestion;
+
+    setQuestions(newQuestions);
+  };
 
   const onSubmit = async () => {
     const isNicknameValid: boolean = !(userData.name === undefined || (userData.name as string).trim() === "");
